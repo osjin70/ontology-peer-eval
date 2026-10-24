@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>온톨로지 동료평가</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#fff; --ink:#1d2330; --sub:#5d6575; --line:#e3e6ec;
+  --brand:#8a1538; --brand-ink:#fff; --ok:#1f8a4c; --warn:#b4541a; --err:#c0263a;
+  --g1:#e0a800; --g2:#2f9a5e; --g3:#d4506f; --g4:#3f74d1;
+  --g1s:#fff6d6; --g2s:#dff3e6; --g3s:#fde3ea; --g4s:#e1ebfb;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto;padding:16px 16px 48px}
+.wrap.wide{max-width:1100px}
+header.top{background:var(--brand);color:var(--brand-ink)}
+header.top .in{max-width:1100px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header.top h1{font-size:17px;margin:0;font-weight:700;flex:1;min-width:200px}
+header.top .who{font-size:14px;opacity:.95}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}
+.card h2{font-size:17px;margin:0 0 10px}
+.muted{color:var(--sub);font-size:14px}
+label{display:block;font-size:14px;color:var(--sub);margin:12px 0 4px}
+input[type=text],input[type=password],input[type=number],select{width:100%;font-size:17px;padding:11px 12px;border:1px solid #cfd4dc;border-radius:10px;background:#fff;color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);outline-offset:1px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid #cfd4dc;background:#fff;color:var(--ink);padding:10px 14px}
+button.primary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700}
+button.block{width:100%;padding:14px;font-size:17px;margin-top:16px}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.ghost{background:transparent;border-color:rgba(255,255,255,.6);color:#fff;padding:6px 12px;font-size:14px}
+button.sm{padding:6px 10px;font-size:13px}
+button.danger{color:var(--err);border-color:#f0b9c1}
+.tabs{display:flex;gap:6px;margin:14px 0 4px;flex-wrap:wrap}
+.tabs button{border-radius:999px;padding:8px 16px}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.seg{display:flex;border:1px solid #cfd4dc;border-radius:10px;overflow:hidden;margin-bottom:6px}
+.seg button{flex:1;border:0;border-radius:0;padding:11px}
+.seg button.on{background:var(--brand);color:#fff;font-weight:700}
+.msg{margin-top:12px;padding:10px 12px;border-radius:10px;font-size:14px}
+.msg.err{background:#fdecee;color:var(--err)}
+.msg.ok{background:#e6f5ec;color:var(--ok)}
+.msg.info{background:#eef2f8;color:#2d4467}
+.grp{border-radius:14px;padding:14px;margin:12px 0;border:1px solid var(--line)}
+.grp .gh{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.grp .gn{font-weight:800;font-size:18px}
+.grp .gv{font-weight:800;font-size:26px}
+.grp .mem{font-size:13px;color:var(--sub);margin:2px 0 10px}
+.g1{background:var(--g1s)}.g2{background:var(--g2s)}.g3{background:var(--g3s)}.g4{background:var(--g4s)}
+.pills{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.pills button{padding:10px 0;font-weight:700;font-size:16px;background:#fff}
+.pills button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.meter{position:sticky;top:0;z-index:5;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:14px 0;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.meter .row{display:flex;justify-content:space-between;font-size:15px}
+.bar{height:10px;background:#eceff3;border-radius:99px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--brand);transition:width .2s}
+.bar i.full{background:var(--ok)}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:700;background:#eceff3;color:var(--sub);white-space:nowrap}
+.badge.ok{background:#e6f5ec;color:var(--ok)}
+.badge.warn{background:#fdf0e6;color:var(--warn)}
+.badge.err{background:#fdecee;color:var(--err)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{color:var(--sub);font-weight:600;font-size:13px;white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.credit-in{width:70px!important;padding:6px 8px!important;font-size:15px!important;text-align:right}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.kpi .v{font-size:24px;font-weight:800}
+.kpi .l{font-size:13px;color:var(--sub)}
+.row-flex{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.switch:last-child{border-bottom:0}
+.switch .t{font-weight:600}
+.switch .d{font-size:13px;color:var(--sub)}
+.switch input[type=number],.switch select{width:110px}
+.demo{background:#fff4d6;color:#6b4e00;font-size:13px;text-align:center;padding:6px 12px}
+footer{text-align:center;margin-top:28px;font-size:13px;color:var(--sub)}
+footer a{color:var(--sub)}
+.admin-link{display:inline-block;padding:6px 14px;border:1px solid var(--line);border-radius:99px;text-decoration:none;font-size:13px;background:var(--card)}
+.summary-line{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+.summary-line:last-child{border-bottom:0}
+.big-status{font-size:15px;font-weight:700;padding:8px 14px;border-radius:99px;display:inline-block}
+.big-status.open{background:#e6f5ec;color:var(--ok)}
+.big-status.closed{background:#eceff3;color:var(--sub)}
+.matrix td.z{color:#b6bcc6}
+@media (max-width:520px){
+  .pills button{font-size:15px;padding:9px 0}
+  .hide-sm{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="wrap"><p class="muted">불러오는 중…</p></div></div>
+<script type="module">
+/* =====================================================================
+   설정 — Firebase 연결 시 아래 FIREBASE_CONFIG 를 콘솔에서 복사한 값으로 교체
+   (null 이면 브라우저에만 저장되는 "데모 모드"로 동작)
+   ===================================================================== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBXsUXwwDbixHn_0rVjJPmlCYP26RZ9nfk",
+  authDomain: "ontology-pe.firebaseapp.com",
+  projectId: "ontology-pe",
+  storageBucket: "ontology-pe.firebasestorage.app",
+  messagingSenderId: "177452609745",
+  appId: "1:177452609745:web:35a8669876ca9a745615f0",
+  measurementId: "G-2Q2DK9TREM"
+};
+/* 예시)
+const FIREBASE_CONFIG = {
+  apiKey: "AIza....",
+  authDomain: "ontology-pe.firebaseapp.com",
+  projectId: "ontology-pe",
+  storageBucket: "ontology-pe.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:abcdef"
+};
+*/
+const ADMIN_NAME = '오상진';                 // 관리자 로그인 시 입력하는 이름
+const ADMIN_EMAIL = 'osjin70@gmail.com';   // Firebase Authentication 에 등록한 관리자 계정 (firestore.rules 와 동일하게)
+// 관리자 비밀번호는 코드에 직접 쓰지 않습니다.
+//  - 운영 모드: Firebase Authentication 의 사용자(ADMIN_EMAIL) 비밀번호로 확인
+//  - 데모 모드: 아래 해시(PBKDF2)와 비교
+const ADMIN_DEMO_HASH = '81455ce39cefbd748248f34c767d8734dbd375a6820688866f0db38e71fc48e9';
+const ROSTER = [
+  {sid:'25114158',name:'박세훈',group:1},{sid:'25114201',name:'정채빈',group:1},
+  {sid:'25150551',name:'김민규',group:1},{sid:'26114200',name:'XIN MENGRAN',group:1},
+  {sid:'26150068',name:'이욱경',group:2},{sid:'26114208',name:'권수빈',group:2},
+  {sid:'26110299',name:'ZHU LIPING',group:2},
+  {sid:'25120509',name:'이지호',group:3},{sid:'25120529',name:'김동혁',group:3},
+  {sid:'25150570',name:'KHODZHAEVA NILUFAR',group:3},
+  {sid:'26160013',name:'이혜정',group:4},{sid:'26160014',name:'최승범',group:4},
+];
+const DEFAULT_SETTINGS = {
+  open:false,          // 평가 진행 여부
+  maxCredit:10,        // 교수 부여 credit 상한 (이번 10점, 기말 20점)
+  maxPerGroup:7,       // 한 조에 줄 수 있는 최대 점수
+  maxSubmits:4,        // 최초 제출 1회 + 수정 3회
+  requireFull:true,    // credit 전액 배분해야 제출 가능
+  title:'온톨로지 프로젝트 기획안 발표 · 조별 동료평가'
+};
+const GROUPS = [1,2,3,4];
+const FB_VER = '10.12.2';
+
+/* ---------------- 공통 유틸 ---------------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s || '').replace(/\s+/g,'').toUpperCase();
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch{ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch{} },
+  del(k){ try{ localStorage.removeItem(k); }catch{} }
+};
+async function sha256(t){
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+const pinHash = (sid, pin) => sha256(`ontology-pe-v1:${sid}:${pin}`);
+async function pbkdf2(pw){
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+  const b = await crypto.subtle.deriveBits({name:'PBKDF2', hash:'SHA-256', salt:new TextEncoder().encode('ontology-pe-admin-v1'), iterations:200000}, k, 256);
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+const toDate = ts => !ts ? null : (ts.toDate ? ts.toDate() : new Date(ts));
+const fmtTime = ts => { const d = toDate(ts); return d ? d.toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '-'; };
+const scoresOf = e => ({1:e.s1||0, 2:e.s2||0, 3:e.s3||0, 4:e.s4||0});
+
+function validateEval(student, settings, scores){
+  const st = {...DEFAULT_SETTINGS, ...settings};
+  if (!st.open) return '현재 평가가 진행 중이 아닙니다.';
+  if (!(student.credit > 0)) return '부여된 credit이 없어 평가에 참여할 수 없습니다.';
+  let tot = 0;
+  for (const g of GROUPS){
+    const v = scores[g] ?? 0;
+    if (!Number.isInteger(v) || v < 0 || v > st.maxPerGroup) return `각 조 점수는 0~${st.maxPerGroup}점입니다.`;
+    if (g === student.group && v !== 0) return '자기 조는 평가할 수 없습니다.';
+    tot += v;
+  }
+  if (tot > student.credit) return `합계 ${tot}점이 credit ${student.credit}점을 초과합니다.`;
+  if (st.requireFull && tot !== student.credit) return `credit ${student.credit}점을 모두 배분해야 제출할 수 있습니다. (현재 ${tot}점)`;
+  return '';
+}
+
+/* ---------------- 데모 백엔드 (localStorage) ---------------- */
+function makeMock(){
+  const K = 'pe-demo-v1';
+  let s = null;
+  try { s = JSON.parse(store.get(K)); } catch {}
+  const fresh = () => {
+    const x = {students:{}, settings:{...DEFAULT_SETTINGS}, pins:{}, evals:{}};
+    ROSTER.forEach(r => x.students[r.sid] = {name:r.name, group:r.group, credit:0, registered:false, prevSubmits:0});
+    return x;
+  };
+  if (!s || !s.students) s = fresh();
+  ROSTER.forEach(r => { if (s.students[r.sid]) Object.assign(s.students[r.sid], {name:r.name, group:r.group}); });
+  const subs = {students:new Set(), settings:new Set(), evals:new Set()};
+  const listStu = () => Object.entries(s.students).map(([id,v]) => ({id, ...v}));
+  const listEv = () => Object.entries(s.evals).map(([id,v]) => ({id, ...v}));
+  const emit = () => {
+    subs.students.forEach(f => f(listStu()));
+    subs.settings.forEach(f => f({...s.settings}));
+    subs.evals.forEach(f => f(listEv()));
+  };
+  const save = () => { store.set(K, JSON.stringify(s)); emit(); };
+  window.addEventListener('storage', e => { if (e.key === K && e.newValue){ try{ s = JSON.parse(e.newValue); emit(); }catch{} } });
+  const sub = (set, fn, val) => { set.add(fn); setTimeout(() => fn(val()), 0); return () => set.delete(fn); };
+  let admin = null; const authFns = new Set();
+  const tick = () => new Promise(r => setTimeout(r, 80));
+  return {
+    mode:'demo',
+    subStudents: fn => sub(subs.students, fn, listStu),
+    subSettings: fn => sub(subs.settings, fn, () => ({...s.settings})),
+    subEvals: fn => sub(subs.evals, fn, listEv),
+    async pinExists(key){ await tick(); return !!s.pins[key]; },
+    async register(sid, h){
+      await tick();
+      if (s.students[sid].registered) throw new Error('이미 PIN이 등록된 학생입니다.');
+      s.pins[sid + '_' + h] = {sid, h}; s.students[sid].registered = true; save();
+    },
+    async getEval(key){ return s.evals[key] ? {...s.evals[key]} : null; },
+    async saveEval(key, data){
+      await tick();
+      const pin = s.pins[key];
+      if (!pin || pin.sid !== data.sid) throw new Error('인증 정보가 올바르지 않습니다. 다시 로그인해 주세요.');
+      const stu = s.students[data.sid];
+      const err = validateEval(stu, s.settings, scoresOf(data)); if (err) throw new Error(err);
+      const prev = s.evals[key];
+      const expected = prev ? prev.submitCount + 1 : (stu.prevSubmits || 0) + 1;
+      if (data.submitCount !== expected || expected > s.settings.maxSubmits) throw new Error('수정 가능 횟수를 초과했습니다.');
+      s.evals[key] = {...data, submittedAt: Date.now()}; save();
+    },
+    onAuth(fn){ authFns.add(fn); setTimeout(() => fn(admin), 0); },
+    async adminSignIn(pw){
+      if (await pbkdf2(pw) !== ADMIN_DEMO_HASH) throw new Error('관리자 비밀번호가 올바르지 않습니다.');
+      admin = {email: ADMIN_NAME}; authFns.forEach(f => f(admin));
+    },
+    async adminSignOut(){ admin = null; authFns.forEach(f => f(admin)); },
+    isAdminUser: u => !!u,
+    async setCredits(map){ for (const [sid,v] of Object.entries(map)) s.students[sid].credit = v; save(); },
+    async setSettings(p){ Object.assign(s.settings, p); save(); },
+    async seed(){ ROSTER.forEach(r => { if (!s.students[r.sid]) s.students[r.sid] = {name:r.name, group:r.group, credit:0, registered:false, prevSubmits:0}; }); save(); },
+    async resetPin(sid){
+      for (const k of Object.keys(s.pins)) if (s.pins[k].sid === sid) delete s.pins[k];
+      let mx = s.students[sid].prevSubmits || 0;
+      for (const e of Object.values(s.evals)) if (e.sid === sid) mx = Math.max(mx, e.submitCount);
+      s.students[sid].prevSubmits = mx; s.students[sid].registered = false; save();
+    },
+    async resetAllPins(){
+      s.pins = {};
+      for (const [sid, st] of Object.entries(s.students)){
+        let mx = st.prevSubmits || 0;
+        for (const e of Object.values(s.evals)) if (e.sid === sid) mx = Math.max(mx, e.submitCount);
+        st.prevSubmits = mx; st.registered = false;
+      }
+      save();
+    },
+    async resetRound(){ s.evals = {}; Object.values(s.students).forEach(x => x.prevSubmits = 0); s.settings.open = false; save(); },
+    async wipeDemo(){ s = fresh(); save(); }
+  };
+}
+
+/* ---------------- Firebase 백엔드 ---------------- */
+async function makeFirebase(cfg){
+  const base = `https://www.gstatic.com/firebasejs/${FB_VER}`;
+  const [A, F, U] = await Promise.all([
+    import(`${base}/firebase-app.js`), import(`${base}/firebase-firestore.js`), import(`${base}/firebase-auth.js`)
+  ]);
+  const app = A.initializeApp(cfg);
+  const db = F.getFirestore(app);
+  const auth = U.getAuth(app);
+  const d = (...p) => F.doc(db, ...p);
+  const col = n => F.collection(db, n);
+  const wrap = fn => async (...a) => {
+    try { return await fn(...a); }
+    catch (e){
+      if (e && e.code === 'permission-denied') throw new Error('저장이 거부되었습니다. (평가 마감, 점수 규칙 위반, 수정 횟수 초과 또는 권한 문제)');
+      throw e;
+    }
+  };
+  return {
+    mode:'firebase',
+    subStudents: fn => F.onSnapshot(col('students'), q => fn(q.docs.map(x => ({id:x.id, ...x.data()}))), e => console.error(e)),
+    subSettings: fn => F.onSnapshot(d('settings','session'), x => fn(x.exists() ? x.data() : null), e => console.error(e)),
+    subEvals: fn => F.onSnapshot(col('evaluations'), q => fn(q.docs.map(x => ({id:x.id, ...x.data()}))), e => console.error(e)),
+    pinExists: wrap(async key => (await F.getDoc(d('pins', key))).exists()),
+    register: wrap(async (sid, h) => {
+      const b = F.writeBatch(db);
+      b.set(d('pins', sid + '_' + h), {sid, h, createdAt: F.serverTimestamp()});
+      b.update(d('students', sid), {registered: true});
+      await b.commit();
+    }),
+    getEval: wrap(async key => { const x = await F.getDoc(d('evaluations', key)); return x.exists() ? x.data() : null; }),
+    saveEval: wrap(async (key, data) => { await F.setDoc(d('evaluations', key), {...data, submittedAt: F.serverTimestamp()}); }),
+    onAuth(fn){ U.onAuthStateChanged(auth, u => fn(u ? {email:u.email} : null)); },
+    async adminSignIn(pw){
+      try { await U.signInWithEmailAndPassword(auth, ADMIN_EMAIL, pw); }
+      catch (e){
+        const c = (e && e.code) || '';
+        if (/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c)) throw new Error('관리자 비밀번호가 올바르지 않습니다.');
+        if (/too-many-requests/.test(c)) throw new Error('시도가 너무 많습니다. 잠시 후 다시 시도하세요.');
+        if (/operation-not-allowed/.test(c)) throw new Error('Firebase에서 이메일/비밀번호 로그인이 켜져 있지 않습니다.');
+        throw e;
+      }
+    },
+    async adminSignOut(){ await U.signOut(auth); },
+    isAdminUser: u => !!u && u.email === ADMIN_EMAIL,
+    setCredits: wrap(async map => {
+      const b = F.writeBatch(db);
+      for (const [sid,v] of Object.entries(map)) b.update(d('students', sid), {credit: v});
+      await b.commit();
+    }),
+    setSettings: wrap(async p => { await F.setDoc(d('settings','session'), p, {merge:true}); }),
+    seed: wrap(async () => {
+      const b = F.writeBatch(db);
+      for (const r of ROSTER) b.set(d('students', r.sid), {name:r.name, group:r.group, credit:0, registered:false, prevSubmits:0});
+      b.set(d('settings','session'), DEFAULT_SETTINGS, {merge:true});
+      await b.commit();
+    }),
+    resetPin: wrap(async sid => {
+      const [pins, evs, stu] = await Promise.all([
+        F.getDocs(F.query(col('pins'), F.where('sid','==',sid))),
+        F.getDocs(F.query(col('evaluations'), F.where('sid','==',sid))),
+        F.getDoc(d('students', sid))
+      ]);
+      let mx = stu.data().prevSubmits || 0;
+      evs.forEach(x => mx = Math.max(mx, x.data().submitCount || 0));
+      const b = F.writeBatch(db);
+      pins.forEach(x => b.delete(x.ref));
+      b.update(d('students', sid), {registered:false, prevSubmits:mx});
+      await b.commit();
+    }),
+    resetAllPins: wrap(async () => {
+      const [pins, evs, stus] = await Promise.all([F.getDocs(col('pins')), F.getDocs(col('evaluations')), F.getDocs(col('students'))]);
+      const used = {};
+      evs.forEach(x => { const e = x.data(); used[e.sid] = Math.max(used[e.sid] || 0, e.submitCount || 0); });
+      const b = F.writeBatch(db);
+      pins.forEach(x => b.delete(x.ref));
+      stus.forEach(x => b.update(x.ref, {registered:false, prevSubmits: Math.max(x.data().prevSubmits || 0, used[x.id] || 0)}));
+      await b.commit();
+    }),
+    resetRound: wrap(async () => {
+      const evs = await F.getDocs(col('evaluations'));
+      const b = F.writeBatch(db);
+      evs.forEach(x => b.delete(x.ref));
+      ROSTER.forEach(r => b.update(d('students', r.sid), {prevSubmits:0}));
+      b.set(d('settings','session'), {open:false}, {merge:true});
+      await b.commit();
+    })
+  };
+}
+
+/* ---------------- 상태 ---------------- */
+const state = {
+  students: [], settings: {...DEFAULT_SETTINGS}, settingsLoaded:false,
+  me: null, myEval: null, draft: {}, editing: false,
+  authTab: 'first', form: {}, verified: null, msg: null, busy: false,
+  adminUser: undefined, evals: [], adminTab: 'credit', evalSub: null
+};
+let api;
+const $app = document.getElementById('app');
+const stuById = id => state.students.find(s => s.id === id);
+const sortStu = l => l.sort((a,b) => a.group - b.group || ROSTER.findIndex(r => r.sid === a.id) - ROSTER.findIndex(r => r.sid === b.id));
+
+/* 입력 중 재렌더링 방지 */
+let pending = false;
+const typing = () => { const a = document.activeElement; return a && $app.contains(a) && (a.tagName === 'SELECT' || (a.tagName === 'INPUT' && !['button','checkbox','radio'].includes(a.type))); };
+document.addEventListener('focusout', () => setTimeout(() => { if (pending && !typing()){ pending = false; render(); } }, 0));
+function render(force){
+  if (!force && typing()){ pending = true; return; }
+  const isAdmin = location.hash === '#admin';
+  $app.innerHTML = (api && api.mode === 'demo' ? `<div class="demo">데모 모드 — 이 브라우저에만 저장됩니다. Firebase 설정을 넣으면 실제 운영 모드로 전환됩니다.</div>` : '') +
+    (isAdmin ? viewAdmin() : (state.me ? viewStudent() : viewLogin()));
+}
+
+/* ---------------- 학생: 로그인 ---------------- */
+// 입력값은 state.form 에 보관 → 실시간 갱신으로 화면이 다시 그려져도 지워지지 않음
+const fv = k => esc(state.form[k] || '');
+function nameSelect(markRegistered){
+  const opts = GROUPS.map(g => {
+    const mem = state.students.filter(s => s.group === g);
+    if (!mem.length) return '';
+    return `<optgroup label="${g}조">${mem.map(s =>
+      `<option value="${s.id}" ${state.form.sid === s.id ? 'selected' : ''}>${esc(s.name)}${markRegistered && s.registered ? ' (PIN 등록됨)' : ''}</option>`).join('')}</optgroup>`;
+  }).join('');
+  return `<label for="in-name">이름</label>
+    <select id="in-name" data-f="sid" required>
+      <option value="" ${state.form.sid ? '' : 'selected'} disabled>이름을 선택하세요</option>${opts}
+    </select>`;
+}
+function viewLogin(){
+  const t = state.authTab;
+  const header = `<header class="top"><div class="in"><h1>${esc(state.settings.title)}</h1></div></header>`;
+  const footer = `<footer><a href="#admin" class="admin-link">관리자 화면</a></footer>`;
+  if (!state.students.length) return header + `<div class="wrap"><div class="card"><p class="muted">학생 명단을 불러오는 중입니다… 계속 이 화면이면 교수님께 알려 주세요.</p></div>${footer}</div>`;
+
+  // 처음 입장 2단계: 본인 확인 후 PIN 설정
+  if (t === 'first' && state.verified){
+    const s = stuById(state.verified);
+    return header + `<div class="wrap"><div class="card">
+      <h2>${esc(s ? s.name : '')} 님, 본인 확인이 되었습니다 ✅</h2>
+      <p class="muted" style="margin:0">이제 앞으로 사용할 <b>PIN(숫자 4자리)</b>을 설정하세요.</p>
+      <form id="f-pin" autocomplete="off">
+        <label for="in-pin">PIN 설정 (숫자 4자리)</label>
+        <input id="in-pin" data-f="pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" value="${fv('pin')}" required>
+        <label for="in-pin2">PIN 확인 (한 번 더)</label>
+        <input id="in-pin2" data-f="pin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••" value="${fv('pin2')}" required>
+        <div class="msg info">다음부터는 <b>[다시 입장]</b>에서 <b>이름 선택 + PIN</b>으로 입장합니다. PIN을 꼭 기억해 두세요.</div>
+        <button class="primary block" type="submit" ${state.busy ? 'disabled' : ''}>PIN 등록하고 입장</button>
+        <button class="block" type="button" data-act="back-verify">← 이전으로</button>
+      </form>${msgHtml()}</div>${footer}</div>`;
+  }
+
+  return header + `
+  <div class="wrap">
+    <div class="card">
+      <div class="seg">
+        <button data-act="tab-auth" data-v="first" class="${t==='first'?'on':''}">처음 입장</button>
+        <button data-act="tab-auth" data-v="login" class="${t==='login'?'on':''}">다시 입장</button>
+      </div>
+      ${t === 'first' ? `
+      <form id="f-verify" autocomplete="off">
+        ${nameSelect(true)}
+        <label for="in-sid">아이디(학번)</label>
+        <input id="in-sid" data-f="id" type="text" inputmode="numeric" placeholder="8자리 학번" value="${fv('id')}" required>
+        <p class="muted" style="margin:10px 0 0">처음 한 번만 이름과 아이디(학번)로 본인을 확인한 뒤 PIN을 설정합니다.</p>
+        <button class="primary block" type="submit" ${state.busy ? 'disabled' : ''}>다음 →</button>
+      </form>` : `
+      <form id="f-login" autocomplete="off">
+        ${nameSelect(false)}
+        <label for="in-pin">PIN (숫자 4자리)</label>
+        <input id="in-pin" data-f="pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" value="${fv('pin')}" required>
+        <p class="muted" style="margin:10px 0 0">PIN을 잊었다면 교수님께 초기화를 요청하세요.</p>
+        <button class="primary block" type="submit" ${state.busy ? 'disabled' : ''}>입장</button>
+      </form>`}
+      ${msgHtml()}
+    </div>
+    ${footer}
+  </div>`;
+}
+const msgHtml = () => state.msg ? `<div class="msg ${state.msg.type}">${esc(state.msg.text)}</div>` : '';
+
+const authFail = text => { state.msg = {type:'err', text}; state.busy = false; render(true); };
+
+// 처음 입장 1단계: 이름 + 아이디 확인
+function onVerify(){
+  const f = state.form, stu = stuById(f.sid);
+  if (!stu) return authFail('이름을 선택하세요.');
+  if ((f.id || '').trim() !== stu.id) return authFail('이름과 아이디(학번)가 일치하지 않습니다.');
+  if (stu.registered) return authFail('이미 PIN이 등록되어 있습니다. [다시 입장]에서 이름과 PIN으로 입장하세요.');
+  state.verified = stu.id; state.form.pin = ''; state.form.pin2 = ''; state.msg = null;
+  render(true);
+  setTimeout(() => { const p = document.getElementById('in-pin'); if (p) p.focus(); }, 0);
+}
+// 처음 입장 2단계: PIN 설정
+async function onSetPin(){
+  const sid = state.verified, pin = (state.form.pin || '').trim(), pin2 = (state.form.pin2 || '').trim();
+  if (!/^\d{4}$/.test(pin)) return authFail('PIN은 숫자 4자리입니다.');
+  if (pin !== pin2) { state.form.pin2 = ''; return authFail('PIN 확인이 일치하지 않습니다. 다시 입력하세요.'); }
+  state.busy = true; state.msg = null; render(true);
+  try {
+    const h = await pinHash(sid, pin);
+    await api.register(sid, h);
+    await enterAs(sid, sid + '_' + h, 'PIN이 등록되었습니다. 다음부터는 [다시 입장]에서 이름과 PIN으로 입장하세요.');
+  } catch (e){ authFail(e.message || String(e)); }
+}
+// 다시 입장: 이름 선택 + PIN
+async function onLogin(){
+  const stu = stuById(state.form.sid), pin = (state.form.pin || '').trim();
+  if (!stu) return authFail('이름을 선택하세요.');
+  if (!/^\d{4}$/.test(pin)) return authFail('PIN은 숫자 4자리입니다.');
+  if (!stu.registered) return authFail('아직 PIN을 등록하지 않았습니다. [처음 입장]에서 이름과 아이디로 시작하세요.');
+  state.busy = true; state.msg = null; render(true);
+  try {
+    const key = stu.id + '_' + await pinHash(stu.id, pin);
+    if (await api.pinExists(key)) return await enterAs(stu.id, key);
+    state.form.pin = ''; authFail('PIN이 올바르지 않습니다.');
+  } catch (e){ authFail(e.message || String(e)); }
+}
+async function enterAs(sid, key, welcome){
+  state.me = {sid, key};
+  store.set('pe-session', JSON.stringify(state.me));
+  state.myEval = await api.getEval(key);
+  state.draft = state.myEval ? scoresOf(state.myEval) : {};
+  state.editing = false; state.busy = false; state.verified = null;
+  state.form = {};
+  state.msg = welcome ? {type:'ok', text:welcome} : null;
+  render(true);
+}
+
+/* ---------------- 학생: 평가 ---------------- */
+function viewStudent(){
+  const me = stuById(state.me.sid);
+  if (!me) return `<div class="wrap"><p class="muted">불러오는 중…</p></div>`;
+  const st = state.settings;
+  const used = state.myEval ? state.myEval.submitCount : (me.prevSubmits || 0);
+  const left = st.maxSubmits - used;
+  const head = `
+  <header class="top"><div class="in">
+    <h1>${esc(st.title)}</h1>
+    <span class="who">${esc(me.name)} · ${me.group}조</span>
+    <button class="ghost" data-act="logout">로그아웃</button>
+  </div></header>`;
+  let body = '';
+  const status = `<span class="big-status ${st.open?'open':'closed'}">${st.open?'평가 진행 중':'평가 대기/마감'}</span>`;
+
+  if (!(me.credit > 0)){
+    body = `<div class="card"><h2>이번 평가에 부여된 credit이 없습니다</h2>
+      <p class="muted">출석하지 않은 학생에게는 평가 credit이 부여되지 않습니다. 출석했는데 이 화면이 보이면 교수님께 말씀해 주세요. (교수님이 credit을 부여하면 이 화면이 자동으로 바뀝니다)</p></div>`;
+  } else if (state.myEval && !state.editing){
+    const sc = scoresOf(state.myEval);
+    body = `<div class="card"><div class="row-flex" style="justify-content:space-between"><h2 style="margin:0">제출 완료 ✅</h2>${status}</div>
+      <p class="muted">제출 시각 ${fmtTime(state.myEval.submittedAt)} · 제출 ${state.myEval.submitCount}회 (최초 1 + 수정 ${state.myEval.submitCount-1})</p>
+      ${GROUPS.filter(g => g !== me.group).map(g => `<div class="summary-line"><span><span class="dot" style="background:var(--g${g})"></span>${g}조</span><b>${sc[g]}점</b></div>`).join('')}
+      <div class="summary-line"><span>합계 / credit</span><b>${state.myEval.total} / ${me.credit}</b></div>
+      ${st.open && left > 0 ? `<button class="block" data-act="edit">수정하기 (남은 수정 ${left}회)</button>` :
+        `<div class="msg info">${left <= 0 ? '수정 가능 횟수를 모두 사용했습니다.' : '평가가 마감되어 수정할 수 없습니다.'}</div>`}
+      ${msgHtml()}</div>`;
+  } else if (!state.myEval && left <= 0){
+    body = `<div class="card"><h2>제출이 이미 완료되었습니다</h2>
+      <p class="muted">설정 초기화 전에 제출·수정 가능 횟수(${st.maxSubmits}회)를 모두 사용했습니다. 이전에 제출한 평가는 그대로 집계됩니다.</p></div>`;
+  } else if (!st.open){
+    body = `<div class="card"><h2>평가 시작 전입니다</h2>${status}
+      <p class="muted" style="margin-top:10px">교수님이 평가를 시작하면 이 화면에 평가표가 자동으로 나타납니다. 새로고침하지 않아도 됩니다.</p>
+      <p class="muted">부여된 credit: <b>${me.credit}점</b></p></div>`;
+  } else {
+    const draft = state.draft;
+    const tot = GROUPS.reduce((a,g) => a + (g === me.group ? 0 : (draft[g] || 0)), 0);
+    const remain = me.credit - tot;
+    const err = validateEval(me, st, Object.fromEntries(GROUPS.map(g => [g, g === me.group ? 0 : (draft[g] || 0)])));
+    const pct = Math.min(100, tot / me.credit * 100);
+    const isEdit = !!state.myEval || used > 0;
+    body = `
+    <div class="meter">
+      <div class="row"><span>배분 <b>${tot}</b> / credit <b>${me.credit}</b></span><span>${remain >= 0 ? `남은 credit <b>${remain}</b>` : `<b style="color:var(--err)">${-remain} 초과</b>`}</span></div>
+      <div class="bar"><i class="${remain === 0 ? 'full' : ''}" style="width:${pct}%"></i></div>
+    </div>
+    <p class="muted" style="margin:0 2px">자기 조(${me.group}조)를 제외한 각 조에 0~${st.maxPerGroup}점을 주세요.${st.requireFull ? ' credit을 모두 배분해야 제출됩니다.' : ''}</p>
+    ${GROUPS.filter(g => g !== me.group).map(g => {
+      const v = draft[g] || 0;
+      const mem = state.students.filter(s => s.group === g).map(s => esc(s.name)).join(', ');
+      return `<div class="grp g${g}">
+        <div class="gh"><span class="gn"><span class="dot" style="background:var(--g${g})"></span>${g}조</span><span class="gv">${v}<small style="font-size:14px;font-weight:600"> 점</small></span></div>
+        <div class="mem">${mem}</div>
+        <div class="pills">${Array.from({length: st.maxPerGroup + 1}, (_, i) =>
+          `<button data-act="pick" data-g="${g}" data-v="${i}" class="${i === v ? 'on' : ''}">${i}</button>`).join('')}</div>
+      </div>`;
+    }).join('')}
+    <div class="card">
+      ${err ? `<div class="msg info" style="margin-top:0">${esc(err)}</div>` : ''}
+      <button class="primary block" data-act="submit" ${err || state.busy ? 'disabled' : ''}>${isEdit ? `수정 제출 (제출 후 남은 수정 ${left - 1}회)` : `제출하기 (제출 후 ${st.maxSubmits - 1}회까지 수정 가능)`}</button>
+      ${state.myEval ? `<button class="block" data-act="cancel-edit">수정 취소</button>` : ''}
+      ${msgHtml()}
+    </div>`;
+  }
+  return head + `<div class="wrap">${body}</div>`;
+}
+
+async function onSubmitEval(){
+  const me = stuById(state.me.sid);
+  const sc = Object.fromEntries(GROUPS.map(g => [g, g === me.group ? 0 : (state.draft[g] || 0)]));
+  const err = validateEval(me, state.settings, sc); if (err){ state.msg = {type:'err', text:err}; return render(true); }
+  const used = state.myEval ? state.myEval.submitCount : (me.prevSubmits || 0);
+  const summary = GROUPS.filter(g => g !== me.group).map(g => `${g}조 ${sc[g]}점`).join(', ');
+  if (!confirm(`${summary}\n\n이대로 제출할까요?`)) return;
+  const data = {sid:me.id, group:me.group, credit:me.credit, s1:sc[1], s2:sc[2], s3:sc[3], s4:sc[4],
+    total: sc[1]+sc[2]+sc[3]+sc[4], submitCount: used + 1};
+  state.busy = true; render(true);
+  try {
+    await api.saveEval(state.me.key, data);
+    state.myEval = await api.getEval(state.me.key);
+    state.editing = false; state.msg = {type:'ok', text:'제출되었습니다. 감사합니다!'};
+  } catch (e){ state.msg = {type:'err', text:e.message || String(e)}; }
+  state.busy = false; render(true);
+}
+
+/* ---------------- 관리자 ---------------- */
+function latestEvals(){
+  const m = new Map();
+  for (const e of state.evals){
+    const p = m.get(e.sid);
+    if (!p || (toDate(e.submittedAt) || 0) > (toDate(p.submittedAt) || 0)) m.set(e.sid, e);
+  }
+  return m;
+}
+function computeStats(){
+  const ev = latestEvals();
+  const res = GROUPS.map(g => {
+    const vals = [], ratios = [];
+    for (const e of ev.values()){
+      if (e.group === g) continue;
+      const v = scoresOf(e)[g]; vals.push(v); ratios.push(e.credit > 0 ? v / e.credit : 0);
+    }
+    const n = vals.length, sum = vals.reduce((a,b) => a+b, 0), mean = n ? sum/n : 0;
+    const sd = n > 1 ? Math.sqrt(vals.reduce((a,b) => a + (b-mean)**2, 0) / (n-1)) : 0;
+    const ratio = n ? ratios.reduce((a,b) => a+b, 0) / n : 0;
+    const eligible = state.students.filter(s => s.group !== g && s.credit > 0).length;
+    return {g, n, sum, mean, sd, ratio, eligible, min: n ? Math.min(...vals) : 0, max: n ? Math.max(...vals) : 0};
+  });
+  const ranked = [...res].sort((a,b) => b.mean - a.mean);
+  ranked.forEach((r,i) => r.rank = (i > 0 && Math.abs(r.mean - ranked[i-1].mean) < 1e-9) ? ranked[i-1].rank : i+1);
+  return {res, ev};
+}
+
+function viewAdmin(){
+  const u = state.adminUser;
+  const head = (extra='') => `<header class="top"><div class="in"><h1>관리자 · ${esc(state.settings.title)}</h1>${extra}</div></header>`;
+  if (u === undefined) return head() + `<div class="wrap"><p class="muted">확인 중…</p></div>`;
+  if (!u) return head() + `<div class="wrap"><div class="card"><h2>관리자 로그인</h2>
+    <form id="f-admin" autocomplete="off">
+      <label for="ad-name">관리자 이름</label>
+      <input id="ad-name" data-f="adName" type="text" value="${fv('adName')}" placeholder="관리자 이름" required>
+      <label for="ad-pw">비밀번호</label>
+      <input id="ad-pw" data-f="adPw" type="password" value="${fv('adPw')}" placeholder="비밀번호" required>
+      <button class="primary block" type="submit" ${state.busy ? 'disabled' : ''}>${state.busy ? '확인 중…' : '로그인'}</button>
+    </form>${msgHtml()}</div>
+    <footer><a href="#">← 학생 화면</a></footer></div>`;
+  if (!api.isAdminUser(u)) return head(`<button class="ghost" data-act="admin-out">로그아웃</button>`) +
+    `<div class="wrap"><div class="card"><h2>권한 없음</h2><p class="muted">${esc(u.email)} 계정은 관리자가 아닙니다.</p></div></div>`;
+  const t = state.adminTab;
+  const tabs = `<div class="tabs">
+    ${[['credit','출석 · credit'],['status','제출 현황'],['stats','결과 통계'],['settings','설정']].map(([k,l]) => `<button data-act="atab" data-v="${k}" class="${t===k?'on':''}">${l}</button>`).join('')}
+  </div>`;
+  const st = state.settings;
+  const openBar = `<div class="card row-flex" style="justify-content:space-between">
+    <span class="big-status ${st.open?'open':'closed'}">${st.open ? '● 평가 진행 중' : '○ 평가 닫힘'}</span>
+    <button class="${st.open ? 'danger' : 'primary'}" data-act="toggle-open">${st.open ? '평가 마감하기' : '평가 시작하기'}</button>
+  </div>`;
+  let body = '';
+  if (!state.students.length){
+    body = `<div class="card"><h2>학생 명단이 비어 있습니다</h2><p class="muted">처음 한 번 명단(12명)과 기본 설정을 등록하세요.</p>
+      <button class="primary block" data-act="seed">명단 등록</button></div>`;
+  } else if (t === 'credit') body = adminCredit();
+  else if (t === 'status') body = adminStatus();
+  else if (t === 'stats') body = adminStats();
+  else body = adminSettings();
+  return head(`<span class="who">${esc(u.email)}</span><button class="ghost" data-act="admin-out">로그아웃</button>`) +
+    `<div class="wrap wide">${openBar}${tabs}${msgHtml()}${body}<footer><a href="#">학생 화면 보기</a></footer></div>`;
+}
+
+async function onAdminLogin(){
+  const name = (state.form.adName || '').trim(), pw = state.form.adPw || '';
+  if (norm(name) !== norm(ADMIN_NAME)) return authFail('관리자 이름 또는 비밀번호가 올바르지 않습니다.');
+  if (!pw) return authFail('비밀번호를 입력하세요.');
+  state.busy = true; state.msg = null; render(true);
+  try { await api.adminSignIn(pw); state.form = {}; state.busy = false; state.msg = null; render(true); }
+  catch (e){ state.form.adPw = ''; authFail(e.message || String(e)); }
+}
+
+function adminCredit(){
+  const st = state.settings;
+  const present = state.students.filter(s => s.credit > 0).length;
+  return `<div class="card">
+    <div class="row-flex" style="justify-content:space-between">
+      <h2 style="margin:0">출석 · credit 부여 <span class="muted">(0~${st.maxCredit}점)</span></h2>
+      <span class="muted">credit 부여 ${present} / ${state.students.length}명</span>
+    </div>
+    <div class="row-flex" style="margin:12px 0">
+      <button class="primary sm" data-act="credit-all" data-v="${st.maxCredit}">전원 ${st.maxCredit}점</button>
+      <button class="sm" data-act="credit-all" data-v="0">전원 0점</button>
+      <span class="muted">결석생은 0점으로 두면 평가에 참여할 수 없습니다.</span>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>조</th><th>이름</th><th class="hide-sm">학번</th><th class="n">credit</th><th>빠른 입력</th></tr></thead>
+      <tbody>${state.students.map(s => `<tr>
+        <td><span class="dot" style="background:var(--g${s.group})"></span>${s.group}</td>
+        <td>${esc(s.name)}</td><td class="hide-sm muted">${s.id}</td>
+        <td class="n"><input class="credit-in" type="number" min="0" max="${st.maxCredit}" step="1" value="${s.credit||0}" data-sid="${s.id}"></td>
+        <td class="row-flex"><button class="sm" data-act="credit-one" data-sid="${s.id}" data-v="${st.maxCredit}">출석 ${st.maxCredit}</button><button class="sm" data-act="credit-one" data-sid="${s.id}" data-v="0">결석 0</button></td>
+      </tr>`).join('')}</tbody></table></div>
+  </div>`;
+}
+
+function adminStatus(){
+  const ev = latestEvals(); const st = state.settings;
+  const elig = state.students.filter(s => s.credit > 0);
+  const done = elig.filter(s => ev.has(s.id)).length;
+  return `<div class="kpis">
+      <div class="kpi"><div class="v">${done} / ${elig.length}</div><div class="l">제출 / 평가 대상(credit>0)</div></div>
+      <div class="kpi"><div class="v">${state.students.filter(s => s.registered).length}</div><div class="l">PIN 등록 학생</div></div>
+      <div class="kpi"><div class="v">${elig.length - done}</div><div class="l">미제출</div></div>
+    </div>
+    <div class="card"><div class="row-flex" style="justify-content:space-between"><h2 style="margin:0">학생별 상태 · 설정 초기화</h2>
+      <button class="sm danger" data-act="reset-all-pins">전체 학생 설정 초기화</button></div><div class="tbl" style="margin-top:10px"><table>
+    <thead><tr><th>조</th><th>이름</th><th class="n">credit</th><th>PIN</th><th>제출</th><th class="hide-sm">최근 제출</th><th></th></tr></thead>
+    <tbody>${state.students.map(s => { const e = ev.get(s.id); return `<tr>
+      <td><span class="dot" style="background:var(--g${s.group})"></span>${s.group}</td><td>${esc(s.name)}</td>
+      <td class="n">${s.credit||0}</td>
+      <td>${s.registered ? '<span class="badge ok">등록</span>' : '<span class="badge">미등록</span>'}</td>
+      <td>${!(s.credit > 0) ? '<span class="badge">대상 아님</span>' : e ? `<span class="badge ok">제출 ${e.submitCount}/${st.maxSubmits}</span>` : '<span class="badge warn">미제출</span>'}</td>
+      <td class="hide-sm muted">${e ? fmtTime(e.submittedAt) : '-'}</td>
+      <td>${s.registered ? `<button class="sm danger" data-act="reset-pin" data-sid="${s.id}">설정 초기화</button>` : ''}</td>
+    </tr>`; }).join('')}</tbody></table></div>
+    <p class="muted">설정 초기화를 하면 해당 학생의 PIN이 삭제되어 <b>처음 입장 상태</b>로 돌아갑니다. 학생은 [처음 입장]에서 이름·아이디로 확인한 뒤 새 PIN을 설정합니다. 이미 제출한 평가 점수와 사용한 수정 횟수는 유지됩니다. (평가 기록까지 지우려면 설정 탭의 "평가 기록 전체 초기화")</p></div>`;
+}
+
+function adminStats(){
+  const {res, ev} = computeStats();
+  const maxMean = Math.max(state.settings.maxPerGroup, ...res.map(r => r.mean));
+  const W = 560, rowH = 40, padL = 48, padR = 56, H = res.length * rowH + 10;
+  const bars = res.map((r,i) => {
+    const w = maxMean ? (W - padL - padR) * r.mean / maxMean : 0, y = 6 + i * rowH;
+    return `<text x="0" y="${y+21}" font-size="14" fill="currentColor">${r.g}조</text>
+      <rect x="${padL}" y="${y+6}" width="${Math.max(w, 1)}" height="22" rx="5" fill="var(--g${r.g})"></rect>
+      <text x="${padL + w + 8}" y="${y+22}" font-size="14" font-weight="700" fill="currentColor">${r.mean.toFixed(2)}</text>`;
+  }).join('');
+  const evs = [...ev.values()].sort((a,b) => a.group - b.group);
+  return `<div class="kpis">
+    <div class="kpi"><div class="v">${ev.size}</div><div class="l">집계된 평가자 수</div></div>
+    <div class="kpi"><div class="v">${[...ev.values()].reduce((a,e) => a + e.total, 0)}</div><div class="l">배분된 총점</div></div>
+  </div>
+  <div class="card"><h2>조별 결과 <span class="muted">(평가자 1인당 평균 기준 순위)</span></h2>
+    <div class="tbl"><table>
+      <thead><tr><th>순위</th><th>조</th><th class="n">평가 수</th><th class="n">합계</th><th class="n">평균</th><th class="n">표준편차</th><th class="n">최소~최대</th><th class="n">credit 대비 비율</th></tr></thead>
+      <tbody>${[...res].sort((a,b) => a.rank - b.rank).map(r => `<tr>
+        <td><b>${r.n ? r.rank : '-'}</b></td><td><span class="dot" style="background:var(--g${r.g})"></span>${r.g}조</td>
+        <td class="n">${r.n} / ${r.eligible}</td><td class="n">${r.sum}</td><td class="n"><b>${r.mean.toFixed(2)}</b></td>
+        <td class="n">${r.sd.toFixed(2)}</td><td class="n">${r.n ? `${r.min}~${r.max}` : '-'}</td><td class="n">${(r.ratio*100).toFixed(1)}%</td>
+      </tr>`).join('')}</tbody></table></div>
+    <p class="muted">평가 수 = 실제 제출 수 / 평가 가능 인원(타 조 학생 중 credit>0). 조 인원이 달라 합계보다 평균으로 비교합니다. "credit 대비 비율"은 평가자가 자기 credit 중 몇 %를 해당 조에 주었는지의 평균입니다.</p>
+  </div>
+  <div class="card"><h2>평균 점수</h2>
+    <svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;color:var(--ink)" role="img" aria-label="조별 평균 점수 막대그래프">${bars}</svg>
+  </div>
+  <div class="card"><div class="row-flex" style="justify-content:space-between"><h2 style="margin:0">평가자 × 조 매트릭스</h2><button class="sm" data-act="csv">CSV 다운로드</button></div>
+    <div class="tbl" style="margin-top:10px"><table class="matrix">
+      <thead><tr><th>평가자</th><th>소속</th><th class="n">credit</th>${GROUPS.map(g => `<th class="n">${g}조</th>`).join('')}<th class="n">합계</th><th class="n">제출</th></tr></thead>
+      <tbody>${evs.length ? evs.map(e => { const s = stuById(e.sid); const sc = scoresOf(e); return `<tr>
+        <td>${esc(s ? s.name : e.sid)}</td><td>${e.group}조</td><td class="n">${e.credit}</td>
+        ${GROUPS.map(g => g === e.group ? '<td class="n z">—</td>' : `<td class="n">${sc[g]}</td>`).join('')}
+        <td class="n"><b>${e.total}</b></td><td class="n">${e.submitCount}</td></tr>`; }).join('') :
+        `<tr><td colspan="9" class="muted">아직 제출된 평가가 없습니다.</td></tr>`}</tbody>
+    </table></div></div>`;
+}
+
+function adminSettings(){
+  const st = state.settings;
+  const impossible = st.requireFull && st.maxPerGroup * 3 < st.maxCredit;
+  return `<div class="card">
+    <h2>평가 설정</h2>
+    <div class="switch"><div><div class="t">평가 제목</div></div><input type="text" id="set-title" value="${esc(st.title)}" style="max-width:420px"></div>
+    <div class="switch"><div><div class="t">credit 상한</div><div class="d">이번 발표 10점, 기말 평가 20점</div></div>
+      <select id="set-maxCredit">${[10,20].concat([10,20].includes(st.maxCredit) ? [] : [st.maxCredit]).map(v => `<option value="${v}" ${v === st.maxCredit ? 'selected' : ''}>${v}점</option>`).join('')}</select></div>
+    <div class="switch"><div><div class="t">한 조 최대 점수</div></div><input type="number" id="set-maxPerGroup" min="1" max="20" value="${st.maxPerGroup}"></div>
+    <div class="switch"><div><div class="t">수정 가능 횟수</div><div class="d">최초 제출 이후 수정할 수 있는 횟수</div></div><input type="number" id="set-edits" min="0" max="10" value="${st.maxSubmits - 1}"></div>
+    <div class="switch"><div><div class="t">credit 전액 배분 필수</div><div class="d">켜면 credit을 모두 나눠 줘야 제출됩니다</div></div><input type="checkbox" id="set-requireFull" ${st.requireFull ? 'checked' : ''} style="width:22px;height:22px"></div>
+    ${impossible ? `<div class="msg err">현재 설정으로는 credit ${st.maxCredit}점을 3개 조에 모두 배분할 수 없습니다 (최대 ${st.maxPerGroup*3}점). 한 조 최대 점수를 올리거나 전액 배분 필수를 끄세요.</div>` : ''}
+    <button class="primary block" data-act="save-settings">설정 저장</button>
+  </div>
+  <div class="card"><h2>새 평가 라운드 (기말 평가 등)</h2>
+    <p class="muted">모든 제출 기록과 수정 횟수를 지우고 평가를 닫습니다. 학생 PIN과 credit은 유지됩니다. 먼저 결과 통계 탭에서 CSV를 내려받아 두세요.</p>
+    <button class="danger" data-act="reset-round">평가 기록 전체 초기화</button>
+    ${api.mode === 'demo' ? `<button class="danger" data-act="wipe-demo" style="margin-left:6px">데모 데이터 완전 초기화</button>` : ''}
+  </div>`;
+}
+
+function downloadCsv(){
+  const {res, ev} = computeStats();
+  const q = v => `"${String(v).replace(/"/g,'""')}"`;
+  const lines = [['구분','학번','이름','소속조','credit','1조','2조','3조','4조','합계','제출횟수','최근제출'].map(q).join(',')];
+  for (const s of state.students){
+    const e = ev.get(s.id);
+    const sc = e ? scoresOf(e) : {};
+    lines.push(['평가', s.id, s.name, s.group, e ? e.credit : (s.credit||0),
+      ...GROUPS.map(g => !e ? '' : g === s.group ? '-' : sc[g]), e ? e.total : '', e ? e.submitCount : 0, e ? fmtTime(e.submittedAt) : ''].map(q).join(','));
+  }
+  lines.push('');
+  lines.push(['조별결과','조','순위','평가수','합계','평균','표준편차','credit대비비율'].map(q).join(','));
+  for (const r of res) lines.push(['조별결과', r.g, r.rank, r.n, r.sum, r.mean.toFixed(3), r.sd.toFixed(3), (r.ratio*100).toFixed(1)+'%'].map(q).join(','));
+  const blob = new Blob(['﻿' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `동료평가_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ---------------- 이벤트 ---------------- */
+const flash = (type, text) => { state.msg = {type, text}; render(true); if (type === 'ok') setTimeout(() => { if (state.msg && state.msg.text === text){ state.msg = null; render(); } }, 2500); };
+const guard = fn => async (...a) => { try { await fn(...a); } catch (e){ flash('err', e.message || String(e)); } };
+
+$app.addEventListener('submit', e => {
+  const id = e.target.id;
+  if (!['f-verify','f-pin','f-login','f-admin'].includes(id)) return;
+  e.preventDefault();
+  if (id === 'f-verify') onVerify();
+  else if (id === 'f-pin') onSetPin();
+  else if (id === 'f-login') onLogin();
+  else onAdminLogin();
+});
+const syncForm = e => { const k = e.target.dataset && e.target.dataset.f; if (k) state.form[k] = e.target.value; };
+$app.addEventListener('input', syncForm);
+$app.addEventListener('change', syncForm);
+$app.addEventListener('change', guard(async e => {
+  const el = e.target;
+  if (el.classList.contains('credit-in')){
+    const max = state.settings.maxCredit;
+    let v = Math.round(Number(el.value)); if (!Number.isFinite(v)) v = 0; v = Math.max(0, Math.min(max, v));
+    el.value = v;
+    await api.setCredits({[el.dataset.sid]: v});
+  }
+}));
+$app.addEventListener('click', guard(async e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const act = b.dataset.act, v = b.dataset.v;
+  switch (act){
+    case 'tab-auth': state.authTab = v; state.verified = null; state.form = {sid: state.form.sid}; state.msg = null; render(true); break;
+    case 'back-verify': state.verified = null; state.form.pin = ''; state.form.pin2 = ''; state.msg = null; render(true); break;
+    case 'pick': state.draft[+b.dataset.g] = +v; state.msg = null; render(true); break;
+    case 'submit': await onSubmitEval(); break;
+    case 'edit': state.editing = true; state.draft = scoresOf(state.myEval); state.msg = null; render(true); break;
+    case 'cancel-edit': state.editing = false; state.msg = null; render(true); break;
+    case 'logout': store.del('pe-session'); state.me = null; state.myEval = null; state.draft = {}; state.form = {}; state.authTab = 'login'; state.msg = null; render(true); break;
+    case 'admin-out': await api.adminSignOut(); state.form = {}; break;
+    case 'atab': state.adminTab = v; state.msg = null; render(true); break;
+    case 'seed': await api.seed(); flash('ok', '명단을 등록했습니다.'); break;
+    case 'toggle-open': {
+      const open = !state.settings.open;
+      if (!open && !confirm('평가를 마감할까요? 학생들은 더 이상 제출·수정할 수 없습니다.')) return;
+      await api.setSettings({open}); flash('ok', open ? '평가를 시작했습니다.' : '평가를 마감했습니다.'); break;
+    }
+    case 'credit-all': {
+      const val = +v;
+      if (!confirm(`전원의 credit을 ${val}점으로 설정할까요?`)) return;
+      await api.setCredits(Object.fromEntries(state.students.map(s => [s.id, val]))); flash('ok', `전원 ${val}점으로 설정했습니다.`); break;
+    }
+    case 'credit-one': await api.setCredits({[b.dataset.sid]: +v}); break;
+    case 'reset-pin': {
+      const s = stuById(b.dataset.sid);
+      if (!confirm(`${s.name} 학생의 설정을 초기화할까요?\n학생은 처음 입장(이름·아이디 확인 → PIN 설정)부터 다시 합니다.`)) return;
+      await api.resetPin(s.id); flash('ok', `${s.name} 학생의 설정을 초기화했습니다.`); break;
+    }
+    case 'reset-all-pins':
+      if (!confirm('전체 학생의 설정(PIN)을 초기화할까요?\n모든 학생이 처음 입장 상태로 돌아갑니다. 평가 점수와 credit은 유지됩니다.')) return;
+      await api.resetAllPins(); flash('ok', '전체 학생의 설정을 초기화했습니다.'); break;
+    case 'save-settings': {
+      const edits = Math.max(0, Math.min(10, Math.round(+document.getElementById('set-edits').value || 0)));
+      const p = {
+        title: document.getElementById('set-title').value.trim() || DEFAULT_SETTINGS.title,
+        maxCredit: +document.getElementById('set-maxCredit').value,
+        maxPerGroup: Math.max(1, Math.min(20, Math.round(+document.getElementById('set-maxPerGroup').value || 7))),
+        maxSubmits: edits + 1,
+        requireFull: document.getElementById('set-requireFull').checked
+      };
+      const over = state.students.filter(s => s.credit > p.maxCredit);
+      await api.setSettings(p);
+      if (over.length) await api.setCredits(Object.fromEntries(over.map(s => [s.id, p.maxCredit])));
+      flash('ok', '설정을 저장했습니다.'); break;
+    }
+    case 'reset-round':
+      if (!confirm('모든 평가 기록을 삭제하고 새 라운드를 시작할까요? 되돌릴 수 없습니다.')) return;
+      await api.resetRound(); flash('ok', '평가 기록을 초기화했습니다.'); break;
+    case 'wipe-demo':
+      if (!confirm('데모 데이터를 모두 지울까요?')) return;
+      await api.wipeDemo(); store.del('pe-session'); state.me = null; flash('ok', '데모 데이터를 초기화했습니다.'); break;
+    case 'csv': downloadCsv(); break;
+  }
+}));
+
+/* ---------------- 시작 ---------------- */
+async function boot(){
+  // 앱을 열면 항상 학생 화면부터. 관리자 화면은 하단 [관리자 화면] 버튼으로만 진입
+  if (location.hash){ try { history.replaceState(null, '', location.pathname + location.search); } catch { location.hash = ''; } }
+  try { api = FIREBASE_CONFIG ? await makeFirebase(FIREBASE_CONFIG) : makeMock(); }
+  catch (e){ $app.innerHTML = `<div class="wrap"><div class="card"><h2>연결 오류</h2><p class="muted">${esc(e.message || e)}</p></div></div>`; return; }
+  api.subStudents(l => {
+    state.students = sortStu(l);
+    const meS = state.me && stuById(state.me.sid);
+    if (state.me && (!meS || meS.registered === false)){
+      state.me = null; state.myEval = null; state.draft = {}; store.del('pe-session');
+      state.authTab = 'first'; state.form = {};
+      state.msg = {type:'info', text:'설정이 초기화되었습니다. [처음 입장]에서 이름과 아이디로 다시 시작하세요.'};
+      render(true);
+    }
+    render();
+  });
+  api.subSettings(x => { state.settings = {...DEFAULT_SETTINGS, ...(x || {})}; state.settingsLoaded = true; render(); });
+  api.onAuth(u => {
+    state.adminUser = u;
+    if (api.isAdminUser(u) && !state.evalSub) state.evalSub = api.subEvals(l => { state.evals = l; render(); });
+    if (!api.isAdminUser(u) && state.evalSub){ state.evalSub(); state.evalSub = null; state.evals = []; }
+    render();
+  });
+  try {
+    const sess = JSON.parse(store.get('pe-session') || 'null');
+    if (sess && sess.key && await api.pinExists(sess.key)){
+      state.me = sess; state.myEval = await api.getEval(sess.key);
+      state.draft = state.myEval ? scoresOf(state.myEval) : {};
+    } else store.del('pe-session');
+  } catch { store.del('pe-session'); }
+  window.addEventListener('hashchange', () => { state.msg = null; render(true); });
+  render(true);
+}
+boot();
+</script>
+</body>
+</html>
